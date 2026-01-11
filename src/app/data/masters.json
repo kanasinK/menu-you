@@ -1,0 +1,522 @@
+{
+  "serviceTypes": [
+    {
+      "id": 1,
+      "label": "ออกแบบอย่างเดียว",
+      "code": "DESIGN_ONLY",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "ผลิตอย่างเดียว",
+      "code": "PRODUCTION_ONLY",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "ออกแบบและผลิต",
+      "code": "DESIGN_AND_PRODUCTION",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "themes": [
+    {
+      "id": 1,
+      "label": "เรียบอ่านง่ายสบายตา",
+      "image_group_name": "simple",
+      "code": "SIMPLE",
+      "image_urls": ["https://example.com/themes/simple-1.jpg", "https://example.com/themes/simple-2.jpg"],
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "หรูหรา",
+      "image_group_name": "luxury",
+      "code": "LUXURY",
+      "image_urls": ["https://example.com/themes/luxury-1.jpg", "https://example.com/themes/luxury-2.jpg"],
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "เท่ทันสมัย",
+      "image_group_name": "cool",
+      "code": "MODERN",
+      "image_urls": ["https://example.com/themes/modern-1.jpg", "https://example.com/themes/modern-2.jpg"],
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "colors": [
+    {
+      "id": 1,
+      "label": "ขาว",
+      "image_name": "panetone-01.png",
+      "code": "WHITE",
+      "hex_code": "#FFFFFF",
+      "image_urls": "https://example.com/images/panetone-01.png",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "เหลือง",
+      "image_name": "panetone-02.png",
+      "code": "YELLOW",
+      "hex_code": "#F59E0B",
+      "image_urls": "https://example.com/images/panetone-02.png",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "แดง",
+      "image_name": "panetone-03.png",
+      "code": "RED",
+      "hex_code": "#EF4444",
+      "image_urls": "https://example.com/images/panetone-03.png",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "label": "เขียว",
+      "image_name": "panetone-04.png",
+      "code": "GREEN",
+      "hex_code": "#10B981",
+      "image_urls": "https://example.com/images/panetone-04.png",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemTypes": [
+    {
+      "id": 1,
+      "label": "ป้ายเมนู",
+      "code": "MENU_SIGN",
+      "category": "SIGN",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "ป้ายสแตนดี้",
+      "code": "STANDEE_SIGN",
+      "category": "SIGN",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "นามบัตร",
+      "code": "BUSINESS_CARD",
+      "category": "CARD",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemSizes": [
+    {
+      "id": 1,
+      "label": "A4",
+      "code": "A4",
+      "width": 210,
+      "height": 297,
+      "unit": "mm",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "A3",
+      "code": "A3",
+      "width": 297,
+      "height": 420,
+      "unit": "mm",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "ขนาดอื่นๆ",
+      "code": "CUSTOM",
+      "width": null,
+      "height": null,
+      "unit": "mm",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemLayouts": [
+    {
+      "id": 1,
+      "label": "แนวตั้ง",
+      "code": "PORTRAIT",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "แนวนอน",
+      "code": "LANDSCAPE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemTextures": [
+    {
+      "id": 1,
+      "label": "พิมพ์เงา",
+      "code": "GLOSSY",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "พิมพ์ด้าน",
+      "code": "MATTE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemSides": [
+    {
+      "id": 1,
+      "label": "หน้าเดียว",
+      "code": "SINGLE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "หน้า - หลัง (แบ่งข้อมูลหน้า - หลังไม่เหมือนกัน)",
+      "code": "DOUBLE_DIFFERENT",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemImages": [
+    {
+      "id": 1,
+      "label": "ไม่ใส่รูปภาพ",
+      "code": "NO_IMAGE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "ใส่รูปภาพ (ใช้รูปของทางร้านเท่านั้น)",
+      "code": "SHOP_IMAGE_ONLY",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemDecorates": [
+    {
+      "id": 1,
+      "label": "ไม่ใส่",
+      "code": "NONE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "ใส่ชื่อร้านอย่างเดียว",
+      "code": "SHOP_NAME_ONLY",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemMaterials": [
+    {
+      "id": 1,
+      "label": "ไวนิล",
+      "code": "VINYL",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "พาสวูดหนา 3 mm.",
+      "code": "PASWOOD_3MM",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "กระดาษธรรมดา",
+      "code": "PAPER_NORMAL",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "itemToolTypes": [
+    {
+      "id": 1,
+      "label": "ฐานไม้ตั้งเมนู 15*6.5 cm",
+      "code": "WOODEN_MENU_BASE",
+      "category": "STAND",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "ขาตั้งไม้สูง 150 cm",
+      "code": "WOODEN_STAND_150CM",
+      "category": "STAND",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "status": [
+    {
+      "id": 1,
+      "label": "รอดำเนินการ",
+      "code": "PENDING",
+      "color": "warning",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "กำลังดำเนินการ",
+      "code": "IN_PROGRESS",
+      "color": "primary",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "เสร็จสิ้น",
+      "code": "COMPLETED",
+      "color": "success",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "label": "Super Admin",
+      "code": "SUPER_ADMIN",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "Admin",
+      "code": "ADMIN",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "Designer (In-house)",
+      "code": "DESIGNER_INHOUSE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "paymentStatus": [
+    {
+      "id": 1,
+      "label": "รอชำระ",
+      "code": "PENDING",
+      "color": "warning",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "label": "ชำระแล้ว",
+      "code": "PAID",
+      "color": "success",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "label": "ชำระบางส่วน",
+      "code": "PARTIAL",
+      "color": "primary",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "productCategories": [
+    {
+      "id": 1,
+      "name": "ป้าย",
+      "code": "SIGN",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "การ์ด",
+      "code": "CARD",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "ป้ายเมนู",
+      "code": "MENU_SIGN",
+      "category_id": 1,
+      "description": "ป้ายเมนูสำหรับร้านอาหาร",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "นามบัตร",
+      "code": "BUSINESS_CARD",
+      "category_id": 2,
+      "description": "นามบัตรสำหรับธุรกิจ",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "orientations": [
+    {
+      "id": 1,
+      "name": "แนวตั้ง",
+      "code": "PORTRAIT",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "แนวนอน",
+      "code": "LANDSCAPE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "pageOptions": [
+    {
+      "id": 1,
+      "name": "หน้าเดียว",
+      "code": "SINGLE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "2 หน้า",
+      "code": "DOUBLE",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "imageOptions": [
+    {
+      "id": 1,
+      "name": "ภาพถ่าย",
+      "code": "PHOTO",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "กราฟิก",
+      "code": "GRAPHIC",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "brandOptions": [
+    {
+      "id": 1,
+      "name": "มีแบรนด์",
+      "code": "BRANDED",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "ไม่มีแบรนด์",
+      "code": "UNBRANDED",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "equipments": [
+    {
+      "id": 1,
+      "name": "เครื่องพิมพ์ดิจิตอล",
+      "code": "DIGITAL_PRINTER",
+      "category": "PRINTING",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "เครื่องตัด",
+      "code": "CUTTING_MACHINE",
+      "category": "CUTTING",
+      "is_active": true,
+      "created_date": "2024-01-01T00:00:00Z",
+      "updated_date": "2024-01-01T00:00:00Z"
+    }
+  ]
+}

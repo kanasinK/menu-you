@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "order_id": 1,
+    "admin": true,
+    "designer": true,
+    "production_team": false,
+    "shipper": false,
+    "pre_production": false,
+    "created_date": "2024-02-08T14:30:00Z",
+    "updated_date": "2024-02-08T14:30:00Z"
+  },
+  {
+    "id": 2,
+    "order_id": 2,
+    "admin": true,
+    "designer": false,
+    "production_team": false,
+    "shipper": true,
+    "pre_production": false,
+    "created_date": "2024-02-16T09:15:00Z",
+    "updated_date": "2024-02-17T10:00:00Z"
+  }
+]

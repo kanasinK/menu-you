@@ -1,0 +1,22 @@
+# ตัวอย่างการตั้งค่า Environment Variables
+# คัดลอกเนื้อหานี้ไปใส่ในไฟล์ .env.local
+
+# Supabase Configuration
+# ไปที่ https://app.supabase.com/ -> Project Settings -> API
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Database Configuration (Render)
+# ใช้ข้อมูลจาก Render database connection string
+DATABASE_URL=postgresql://username:password@host:port/database
+DB_HOST=your-render-db-host
+DB_PORT=5432
+DB_NAME=your-database-name
+DB_USER=your-username
+DB_PASSWORD=your-password
+
+# หมายเหตุ:
+# 1. แทนที่ your-project-id ด้วย Project ID จริงจาก Supabase
+# 2. แทนที่ your-anon-key-here ด้วย Anon Key จริงจาก Supabase
+# 3. แทนที่ข้อมูล database ด้วยข้อมูลจริงจาก Render
+# 4. หลังจากตั้งค่าแล้ว ให้ restart development server

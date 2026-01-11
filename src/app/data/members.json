@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "user_name": "somchai",
+    "nickname": "ชาย",
+    "email": "somchai@example.com",
+    "role_code": "ADMIN",
+    "status": true,
+    "password": null,
+    "created_date": "2024-01-15T08:30:00Z",
+    "updated_date": "2024-01-15T08:30:00Z"
+  },
+  {
+    "id": 2,
+    "user_name": "somying",
+    "nickname": "หญิง",
+    "email": "somying@example.com",
+    "role_code": "DESIGNER_INHOUSE",
+    "status": true,
+    "password": null,
+    "created_date": "2024-01-16T09:15:00Z",
+    "updated_date": "2024-01-16T09:15:00Z"
+  },
+  {
+    "id": 3,
+    "user_name": "wirun",
+    "nickname": "รุฬ",
+    "email": "wirun@example.com",
+    "role_code": "PRODUCTION",
+    "status": true,
+    "password": null,
+    "created_date": "2024-01-17T10:00:00Z",
+    "updated_date": "2024-01-17T10:00:00Z"
+  },
+  {
+    "id": 4,
+    "user_name": "maneerat",
+    "nickname": "มณี",
+    "email": "maneerat@example.com",
+    "role_code": "SHIPPER",
+    "status": true,
+    "password": null,
+    "created_date": "2024-01-18T11:30:00Z",
+    "updated_date": "2024-01-18T11:30:00Z"
+  }
+]
