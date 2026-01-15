@@ -125,9 +125,24 @@ export const MemberSchema = z.object({
   email: z.string().email('อีเมลไม่ถูกต้อง').min(1, 'อีเมลจำเป็น'),
   roleCode: z.string().min(1, 'บทบาทจำเป็น'),
   status: z.boolean().default(true),
-  // password ไม่ควรเก็บในตาราง members - ใช้ Supabase Auth แทน
+  password: z.string().optional(), // ใช้สำหรับส่งไป Supabase Auth เท่านั้น
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+// Order Item (for embedding in Order)
+export const OrderItemEmbeddedSchema = z.object({
+  productCode: z.string().nullable(),
+  productOther: z.string().nullable(),
+  sizeCode: z.string().nullable(),
+  sizeWidth: z.number().nullable(),
+  sizeHeight: z.number().nullable(),
+  orientationCode: z.string().nullable(),
+  coatingCode: z.string().nullable(),
+  pageOptionCode: z.string().nullable(),
+  imageOptionCode: z.string().nullable(),
+  brandOptionCode: z.string().nullable(),
+  quantity: z.number().nullable(),
 });
 
 // Order Types
@@ -165,6 +180,7 @@ export const OrderSchema = z.object({
   acceptDate: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  items: z.array(OrderItemEmbeddedSchema).optional(),
 });
 
 export const OrderItemSchema = z.object({

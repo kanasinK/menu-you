@@ -132,7 +132,7 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
           userName: data.userName,
           nickname: data.nickname || null,
           email: data.email,
-          password: data.password || null,
+          password: data.password || undefined,
           roleCode: data.roleCode,
           status: data.status === "active",
         });

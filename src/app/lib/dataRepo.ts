@@ -378,7 +378,7 @@ export const memberRepo = {
       email: member.email,
       roleCode: member.role_code,
       status: member.status,
-      password: member.password,
+      password: member.password ?? undefined,
       createdAt: member.created_date,
       updatedAt: member.updated_date,
     }));
@@ -457,8 +457,10 @@ export const orderRepo = {
       line: order.line,
       designerOwnerId: order.designerOwnerId || order.designer_owner_id,
       moodTone: order.moodTone || order.mood_tone,
+      colorCodes: order.moodTone || order.mood_tone, // Alias of moodTone
       themeCode: order.themeCode || order.theme_code,
       brief: order.brief,
+      designInfoText: order.brief, // Alias of brief
       price: order.price,
       designerBudget: order.designerBudget || order.designer_budget,
       fileUrl: order.fileUrl || order.file_url,
@@ -473,6 +475,7 @@ export const orderRepo = {
       acceptDate: order.acceptDate || order.accept_date,
       createdAt: order.createdAt || order.created_date,
       updatedAt: order.updatedAt || order.updated_date,
+      items: order.items || [],
     }));
   },
 
@@ -513,8 +516,10 @@ export const orderRepo = {
     if (params.sort) {
       const [field, direction] = params.sort.split(':');
       orders.sort((a, b) => {
-        const aValue = (a as Record<string, string | number | null | undefined>)[field];
-        const bValue = (b as Record<string, string | number | null | undefined>)[field];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const aValue = (a as any)[field];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bValue = (b as any)[field];
 
         if (direction === 'desc') {
           return (bValue ?? '') > (aValue ?? '') ? 1 : -1;
