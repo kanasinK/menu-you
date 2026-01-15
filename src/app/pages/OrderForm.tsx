@@ -199,7 +199,7 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
   const { selectedOrder, selectOrder, createOrder, updateOrder } =
     useOrderStore();
   const { getOptionsForSelect, isLoaded: masterLoaded } = useMasterStore();
-  const { getActiveMembersOptions } = useMemberStore();
+  const { members, getActiveMembersOptions } = useMemberStore();
   const { toast } = useToast();
 
   const isEditing = Boolean(orderId);
@@ -236,7 +236,9 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
   }, [orderId, isEditing, selectOrder]);
 
   useEffect(() => {
-    if (isEditing && selectedOrder && masterLoaded) {
+    // รอให้ทั้ง master data และ members โหลดเสร็จก่อน reset form
+    // เพื่อให้ Select component มี options พร้อมก่อนที่จะ set value
+    if (isEditing && selectedOrder && masterLoaded && members.length > 0) {
       const resetData = {
         // Main form fields
         serviceTypeCode: (selectedOrder as any).serviceTypeCode ?? "",
@@ -286,7 +288,7 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
       };
       form.reset(resetData);
     }
-  }, [isEditing, selectedOrder, masterLoaded, form]);
+  }, [isEditing, selectedOrder, masterLoaded, members.length, form]);
 
   const onSubmit = async (data: OrderFormData) => {
     try {

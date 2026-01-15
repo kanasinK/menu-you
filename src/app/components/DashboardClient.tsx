@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { http } from "@/lib/api/http";
 import {
   ShoppingCart,
   DollarSign,
@@ -61,19 +62,18 @@ export default function DashboardClient() {
       setError(null);
 
       // ดึงข้อมูลสถิติจาก Supabase
-      const response = await fetch('/api/statistics');
-      const data = await response.json();
+      const { data } = await http.get("/api/statistics");
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to load statistics');
+      if (!data.success) {
+        throw new Error(data.error || "Failed to load statistics");
       }
 
       setStatistics(data.statistics);
       setMembers(data.members);
       setClaims(data.claims);
-    } catch (err: any) {
-      console.error('Load data error:', err);
-      setError(err.message);
+    } catch (err: unknown) {
+      console.error("Load data error:", err);
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
     } finally {
       setLoading(false);
     }
@@ -87,10 +87,10 @@ export default function DashboardClient() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
+    return new Date(dateString).toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
     });
   };
 
@@ -111,7 +111,9 @@ export default function DashboardClient() {
             </Card>
           ))}
         </div>
-        <div className="text-center text-muted-foreground">กำลังโหลดข้อมูล...</div>
+        <div className="text-center text-muted-foreground">
+          กำลังโหลดข้อมูล...
+        </div>
       </div>
     );
   }
@@ -199,21 +201,18 @@ export default function DashboardClient() {
           <CardContent className="space-y-3">
             {Object.entries(statistics?.byStatus || {}).map(
               ([status, count]) => (
-                <div
-                  key={status}
-                  className="flex items-center justify-between"
-                >
+                <div key={status} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {status}
-                    </Badge>
+                    <Badge variant="secondary">{status}</Badge>
                   </div>
                   <span className="font-semibold">{count}</span>
                 </div>
               )
             )}
             {Object.keys(statistics?.byStatus || {}).length === 0 && (
-              <div className="text-sm text-muted-foreground">ยังไม่มีข้อมูล</div>
+              <div className="text-sm text-muted-foreground">
+                ยังไม่มีข้อมูล
+              </div>
             )}
           </CardContent>
         </Card>
@@ -230,21 +229,18 @@ export default function DashboardClient() {
           <CardContent className="space-y-3">
             {Object.entries(statistics?.byPaymentStatus || {}).map(
               ([status, count]) => (
-                <div
-                  key={status}
-                  className="flex items-center justify-between"
-                >
+                <div key={status} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {status}
-                    </Badge>
+                    <Badge variant="secondary">{status}</Badge>
                   </div>
                   <span className="font-semibold">{count}</span>
                 </div>
               )
             )}
             {Object.keys(statistics?.byPaymentStatus || {}).length === 0 && (
-              <div className="text-sm text-muted-foreground">ยังไม่มีข้อมูล</div>
+              <div className="text-sm text-muted-foreground">
+                ยังไม่มีข้อมูล
+              </div>
             )}
           </CardContent>
         </Card>
@@ -259,9 +255,7 @@ export default function DashboardClient() {
                 <Eye className="h-5 w-5" />
                 ออเดอร์ล่าสุด
               </CardTitle>
-              <CardDescription>
-                ออเดอร์ที่สร้างล่าสุด 5 รายการ
-              </CardDescription>
+              <CardDescription>ออเดอร์ที่สร้างล่าสุด 5 รายการ</CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">
               <Link href="/orders">
@@ -291,7 +285,8 @@ export default function DashboardClient() {
                 </div>
               </div>
             ))}
-            {(!statistics?.recentOrders || statistics.recentOrders.length === 0) && (
+            {(!statistics?.recentOrders ||
+              statistics.recentOrders.length === 0) && (
               <div className="text-center text-muted-foreground py-8">
                 ยังไม่มีออเดอร์ในระบบ
               </div>

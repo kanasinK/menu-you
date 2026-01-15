@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { Member } from '@/types';
-import { getSupabase } from '@/lib/supabase';
+import { http } from '@/lib/api/http';
 
 interface MemberStore {
   members: Member[];
@@ -23,20 +23,6 @@ interface MemberStore {
   getActiveMembersOptions: () => Array<{ value: string; label: string; }>;
 }
 
-// Helper function to get auth headers
-async function getAuthHeaders(): Promise<HeadersInit> {
-  const supabase = getSupabase();
-  if (!supabase) return { 'Content-Type': 'application/json' };
-
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-  };
-}
-
 export const useMemberStore = create<MemberStore>()(
   devtools(
     (set, get) => ({
@@ -48,11 +34,9 @@ export const useMemberStore = create<MemberStore>()(
       loadMembers: async () => {
         set({ isLoading: true, error: null });
         try {
-          const headers = await getAuthHeaders();
-          const res = await fetch('/api/members', { headers });
-          const data = await res.json();
+          const { data } = await http.get('/api/members');
 
-          if (!res.ok || !data.success) {
+          if (!data.success) {
             throw new Error(data.error || 'Failed to load members');
           }
 
@@ -88,22 +72,16 @@ export const useMemberStore = create<MemberStore>()(
       createMember: async (memberData) => {
         set({ isLoading: true, error: null });
         try {
-          const headers = await getAuthHeaders();
-          const res = await fetch('/api/members', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              user_name: memberData.userName,
-              nickname: memberData.nickname,
-              email: memberData.email,
-              password: memberData.password,
-              role_code: memberData.roleCode,
-              status: memberData.status,
-            }),
+          const { data } = await http.post('/api/members', {
+            user_name: memberData.userName,
+            nickname: memberData.nickname,
+            email: memberData.email,
+            password: memberData.password,
+            role_code: memberData.roleCode,
+            status: memberData.status,
           });
-          const data = await res.json();
 
-          if (!res.ok || !data.success) {
+          if (!data.success) {
             throw new Error(data.error || 'Failed to create member');
           }
 
@@ -135,22 +113,16 @@ export const useMemberStore = create<MemberStore>()(
       updateMember: async (id: string, updates: Partial<Member>) => {
         set({ isLoading: true, error: null });
         try {
-          const headers = await getAuthHeaders();
-          const res = await fetch(`/api/members/${id}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify({
-              user_name: updates.userName,
-              nickname: updates.nickname,
-              email: updates.email,
-              password: updates.password,
-              role_code: updates.roleCode,
-              status: updates.status,
-            }),
+          const { data } = await http.put(`/api/members/${id}`, {
+            user_name: updates.userName,
+            nickname: updates.nickname,
+            email: updates.email,
+            password: updates.password,
+            role_code: updates.roleCode,
+            status: updates.status,
           });
-          const data = await res.json();
 
-          if (!res.ok || !data.success) {
+          if (!data.success) {
             throw new Error(data.error || 'Failed to update member');
           }
 
@@ -182,14 +154,9 @@ export const useMemberStore = create<MemberStore>()(
       deleteMember: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
-          const headers = await getAuthHeaders();
-          const res = await fetch(`/api/members/${id}`, {
-            method: 'DELETE',
-            headers,
-          });
-          const data = await res.json();
+          const { data } = await http.delete(`/api/members/${id}`);
 
-          if (!res.ok || !data.success) {
+          if (!data.success) {
             throw new Error(data.error || 'Failed to delete member');
           }
 
