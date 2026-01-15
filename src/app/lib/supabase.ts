@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 let cachedClient: SupabaseClient | null | undefined
+let cachedServerClient: SupabaseClient | null | undefined
 
 export const getSupabase = (): SupabaseClient | null => {
   if (cachedClient !== undefined) return cachedClient
@@ -10,9 +11,6 @@ export const getSupabase = (): SupabaseClient | null => {
 
   if (!supabaseUrl || !supabasePublishableKey) {
     if (process.env.NODE_ENV !== 'production') {
-      // เตือนในโหมดพัฒนาเพื่อให้รู้ว่าใช้ fallback ได้
-      // ไม่ throw เพื่อให้ fallback localStorage ทำงานได้
-      // eslint-disable-next-line no-console
       console.warn('Supabase env missing, API จะ fallback ไป local data')
     }
     cachedClient = null
@@ -23,12 +21,25 @@ export const getSupabase = (): SupabaseClient | null => {
   return cachedClient
 }
 
-// Database configuration for direct connection to Render (disabled)
-// export const DATABASE_CONFIG = {
-//   url: process.env.DATABASE_URL || '',
-//   host: process.env.DB_HOST || '',
-//   port: parseInt(process.env.DB_PORT || '5432'),
-//   database: process.env.DB_NAME || '',
-//   username: process.env.DB_USER || '',
-//   password: process.env.DB_PASSWORD || '',
-// }
+// Server-side client with service role key (bypasses RLS)
+// ใช้สำหรับ auth.admin functions เท่านั้น
+export const getSupabaseServer = (): SupabaseClient | null => {
+  if (cachedServerClient !== undefined) return cachedServerClient
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.warn('SUPABASE_SERVICE_ROLE_KEY is missing, falling back to anon key')
+    cachedServerClient = getSupabase()
+    return cachedServerClient
+  }
+
+  cachedServerClient = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+  return cachedServerClient
+}

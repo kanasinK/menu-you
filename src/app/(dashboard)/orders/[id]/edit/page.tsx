@@ -2,9 +2,9 @@ import { Metadata } from "next";
 import OrderForm from "@/pages/OrderForm";
 
 interface OrderEditPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export const metadata: Metadata = {
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description: "แก้ไขข้อมูลออเดอร์",
 };
 
-export default function OrderEditPage({ params }: OrderEditPageProps) {
-  return <OrderForm orderId={params.id} />;
+export default async function OrderEditPage({ params }: OrderEditPageProps) {
+  const { id } = await params;
+  return <OrderForm orderId={id} />;
 }

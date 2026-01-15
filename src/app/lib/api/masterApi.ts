@@ -47,6 +47,7 @@ export class MasterApiService {
       themes: () => this.getThemes(),
       colors: () => this.getColors(),
       products: () => this.getProducts(),
+      sizes: () => this.getSizes(),
       orientations: () => this.getOrientations(),
       pageOptions: () => this.getPageOptions(),
       imageOptions: () => this.getImageOptions(),
@@ -145,7 +146,7 @@ export class MasterApiService {
 
   // ดึงข้อมูล roles
   static async getRoles(): Promise<MasterItem[]> {
-    return this.fetchTable('roles')
+    return this.fetchTable('role')
   }
 
   // ดึงข้อมูล status
@@ -230,7 +231,7 @@ export class MasterApiService {
       brandOptions: 'brand_options',
       coatings: 'coatings',
       equipments: 'equipments',
-      roles: 'roles',
+      roles: 'role',
       itemTypes: 'item_types',
       itemSizes: 'item_sizes',
       itemLayouts: 'item_layouts',
@@ -271,7 +272,7 @@ export class MasterApiService {
       materials: 'materials',
       coatings: 'coatings',
       equipments: 'equipments',
-      roles: 'roles'
+      roles: 'role'
     };
 
     const tableName = tableMap[type];
@@ -314,7 +315,7 @@ export class MasterApiService {
       materials: 'materials',
       coatings: 'coatings',
       equipments: 'equipments',
-      roles: 'roles'
+      roles: 'role'
     };
 
     const tableName = tableMap[type];

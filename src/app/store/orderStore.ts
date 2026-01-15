@@ -17,7 +17,7 @@ interface OrderStore {
     totalAmount: number;
     recentOrders: Order[];
   } | null;
-  
+
   // Actions
   loadOrders: (query?: Partial<OrderQuery>) => void;
   selectOrder: (id: string | null) => void;
@@ -27,7 +27,7 @@ interface OrderStore {
   setQuery: (query: Partial<OrderQuery>) => void;
   loadStatistics: () => void;
   clearError: () => void;
-  
+
   // Selectors
   getOrderById: (id: string) => Order | undefined;
 }
@@ -44,7 +44,7 @@ export const useOrderStore = create<OrderStore>()(
         size: 10,
       },
       statistics: null,
-      
+
       loadOrders: async (queryUpdates = {}) => {
         set({ isLoading: true, error: null });
         try {
@@ -61,13 +61,13 @@ export const useOrderStore = create<OrderStore>()(
           const orders = orderRepo.query(newQuery);
           set({ orders, query: newQuery, isLoading: false });
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to load orders',
-            isLoading: false 
+            isLoading: false
           });
         }
       },
-      
+
       selectOrder: async (id: string | null) => {
         if (!id) {
           set({ selectedOrder: null });
@@ -86,64 +86,82 @@ export const useOrderStore = create<OrderStore>()(
           const order = orderRepo.getById(id);
           set({ selectedOrder: order || null, isLoading: false });
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to load order',
-            isLoading: false 
+            isLoading: false
           });
         }
       },
-      
+
       createOrder: async (orderData) => {
         set({ isLoading: true, error: null });
         try {
           const newOrder = orderRepo.create(orderData);
-          
+
           // Reload orders to reflect the new addition
           const { query } = get();
           const orders = orderRepo.query(query);
-          
-          set({ 
-            orders, 
+
+          set({
+            orders,
             selectedOrder: newOrder,
-            isLoading: false 
+            isLoading: false
           });
           return newOrder;
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to create order',
-            isLoading: false 
+            isLoading: false
           });
           throw error;
         }
       },
-      
+
       updateOrder: async (id: string, updates: Partial<Order>) => {
         set({ isLoading: true, error: null });
         try {
+          // ลองอัปเดตผ่าน API จริงก่อน
+          try {
+            const updatedOrder = await OrderApiService.updateOrder(id, updates);
+
+            // Reload orders
+            const { query } = get();
+            const orders = await OrderApiService.queryOrders(query);
+
+            set({
+              orders,
+              selectedOrder: updatedOrder,
+              isLoading: false
+            });
+            return updatedOrder;
+          } catch {
+            // fallback to mock
+          }
+
           const updatedOrder = orderRepo.update(id, updates);
           if (!updatedOrder) {
             throw new Error('Order not found');
           }
-          
+
           // Reload orders to reflect the update
           const { query } = get();
           const orders = orderRepo.query(query);
-          
-          set({ 
+
+          set({
             orders,
             selectedOrder: updatedOrder,
-            isLoading: false 
+            isLoading: false
           });
           return updatedOrder;
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to update order',
-            isLoading: false 
+            isLoading: false
           });
           throw error;
         }
       },
-      
+
       deleteOrder: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -151,48 +169,48 @@ export const useOrderStore = create<OrderStore>()(
           if (!success) {
             throw new Error('Order not found');
           }
-          
+
           // Reload orders to reflect the deletion
           const { query, selectedOrder } = get();
           const orders = orderRepo.query(query);
-          
-          set({ 
+
+          set({
             orders,
             selectedOrder: selectedOrder?.id?.toString() === id ? null : selectedOrder,
-            isLoading: false 
+            isLoading: false
           });
           return true;
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to delete order',
-            isLoading: false 
+            isLoading: false
           });
           return false;
         }
       },
-      
+
       setQuery: (queryUpdates: Partial<OrderQuery>) => {
         const { query } = get();
         const newQuery = { ...query, ...queryUpdates };
         set({ query: newQuery });
         get().loadOrders();
       },
-      
+
       loadStatistics: () => {
         try {
           const statistics = orderRepo.getStatistics();
           set({ statistics });
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to load statistics'
           });
         }
       },
-      
+
       clearError: () => {
         set({ error: null });
       },
-      
+
       getOrderById: (id: string) => {
         return orderRepo.getById(id);
       },

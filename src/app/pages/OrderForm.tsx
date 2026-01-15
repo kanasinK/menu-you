@@ -30,33 +30,12 @@ import { useOrderStore } from "@/store/orderStore";
 import { useMasterStore } from "@/store/masterStore";
 import { useMemberStore } from "@/store/memberStore";
 import { useToast } from "@/hooks/use-toast";
-import { ContactSchema, ShippingSchema, DesignInfoSchema } from "@/types";
 import { ColorCodesField } from "@/components/forms/ColorCodesField";
 import { ThemeField } from "@/components/forms/ThemeField";
 import OrderDesignItems from "@/components/forms/OrderDesignItems";
 
 const orderFormSchema = z
   .object({
-    // Legacy fields - keep for compatibility but make optional
-    contact: ContactSchema.default({
-      customerName: "",
-      contactPerson: "",
-      email: "",
-      phone: "",
-      address: "",
-    }).optional(),
-    shipping: ShippingSchema.default({
-      method: "delivery",
-      cost: 0,
-      address: "",
-      estimatedDate: "",
-    }).optional(),
-    designInfo: DesignInfoSchema.default({
-      concept: "",
-      notes: "",
-      files: [],
-    }).optional(),
-
     // Main form fields
     serviceTypeCode: z.string().min(1, "ประเภทบริการจำเป็น"),
     themeCode: z.string().optional(),
@@ -219,7 +198,7 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
   const router = useRouter();
   const { selectedOrder, selectOrder, createOrder, updateOrder } =
     useOrderStore();
-  const { getOptionsForSelect } = useMasterStore();
+  const { getOptionsForSelect, isLoaded: masterLoaded } = useMasterStore();
   const { getActiveMembersOptions } = useMemberStore();
   const { toast } = useToast();
 
@@ -228,34 +207,13 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
   const form = useForm<OrderFormData>({
     resolver: zodResolver(orderFormSchema) as unknown as any,
     defaultValues: {
-      // Legacy fields - keep for compatibility
-      contact: {
-        customerName: "",
-        contactPerson: "",
-        email: "",
-        phone: "",
-        address: "",
-      },
-      shipping: {
-        address: "",
-        method: "delivery",
-        cost: 0,
-        estimatedDate: "",
-      },
-      designInfo: {
-        concept: "",
-        notes: "",
-        files: [],
-      },
-
       // Main form fields
       serviceTypeCode: "",
       themeCode: "",
       colorCodes: [],
-      status: "1", // Default to pending
-      paymentStatus: "1", // Default to pending payment
+      status: "PENDING",
+      paymentStatus: "PENDING",
       assigneeId: "",
-      // Additional fields from web form
       fullName: "",
       shopName: "",
       tel: "",
@@ -278,36 +236,27 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
   }, [orderId, isEditing, selectOrder]);
 
   useEffect(() => {
-    if (isEditing && selectedOrder) {
-      form.reset({
-        // Legacy fields
-        contact: (selectedOrder as any).contact || {
-          customerName: "",
-          contactPerson: "",
-          email: "",
-          phone: "",
-          address: "",
-        },
-        shipping: (selectedOrder as any).shipping || {
-          address: "",
-          method: "delivery",
-          cost: 0,
-          estimatedDate: "",
-        },
-        designInfo: (selectedOrder as any).designInfo || {
-          concept: "",
-          notes: "",
-          files: [],
-        },
-
+    if (isEditing && selectedOrder && masterLoaded) {
+      const resetData = {
         // Main form fields
         serviceTypeCode: (selectedOrder as any).serviceTypeCode ?? "",
         themeCode: (selectedOrder as any).themeCode ?? "",
         colorCodes: (selectedOrder as any).colorCodes ?? [],
-        status: String((selectedOrder as any).status ?? ""),
-        paymentStatus: String((selectedOrder as any).paymentStatus ?? ""),
-        assigneeId: String((selectedOrder as any).assigneeId ?? ""),
-        // Additional fields from web form
+        status: String(
+          (selectedOrder as any).statusCode ??
+            (selectedOrder as any).status ??
+            ""
+        ),
+        paymentStatus: String(
+          (selectedOrder as any).paymentStatusCode ??
+            (selectedOrder as any).paymentStatus ??
+            ""
+        ),
+        assigneeId: String(
+          (selectedOrder as any).designerOwnerId ??
+            (selectedOrder as any).assigneeId ??
+            ""
+        ),
         fullName: selectedOrder.fullName || "",
         shopName: selectedOrder.shopName || "",
         tel: selectedOrder.tel || "",
@@ -320,9 +269,24 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
         shippingTel: (selectedOrder as any).shippingTel || "",
         shippingAddress: (selectedOrder as any).shippingAddress || "",
         designInfoText: (selectedOrder as any).designInfoText || "",
-      });
+        // Items from order_item
+        items: ((selectedOrder as any).items || []).map((item: any) => ({
+          productCode: item.productCode || "",
+          productOther: item.productOther || "",
+          sizeCode: item.sizeCode || "",
+          sizeWidth: item.sizeWidth ? String(item.sizeWidth) : "",
+          sizeHeight: item.sizeHeight ? String(item.sizeHeight) : "",
+          orientationCode: item.orientationCode || "",
+          coatingCode: item.coatingCode || "",
+          pageOptionCode: item.pageOptionCode || "",
+          imageOptionCode: item.imageOptionCode || "",
+          brandOptionCode: item.brandOptionCode || "",
+          quantity: item.quantity ? String(item.quantity) : "",
+        })),
+      };
+      form.reset(resetData);
     }
-  }, [isEditing, selectedOrder, form]);
+  }, [isEditing, selectedOrder, masterLoaded, form]);
 
   const onSubmit = async (data: OrderFormData) => {
     try {
@@ -341,58 +305,64 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
         quantity: it.quantity ? Number(it.quantity) : null,
       }));
 
-      const orderData = {
-        ...data,
-        // Map form fields to API fields
-        serviceTypeCode: data.serviceTypeCode,
-        themeCode: data.themeCode,
-        colorCodes: data.colorCodes,
-        // Ensure required fields have default values
-        contact: data.contact || {
-          customerName: "",
-          contactPerson: "",
-          email: "",
-          phone: "",
-          address: "",
-        },
-        shipping: data.shipping || {
-          address: "",
-          method: "delivery" as const,
-          cost: 0,
-          estimatedDate: "",
-        },
-        designInfo: data.designInfo || {
-          concept: "",
-          notes: "",
-          files: [],
-        },
-        equipments: [], // Default empty equipments
-        amount: {
-          subtotal: 0,
-          discount: 0,
-          tax: 0,
-          shipping: data.shipping?.cost || 0,
-          total: data.shipping?.cost || 0,
-        },
-        // แนบ items (array) สำหรับ API จริง
-        items:
-          data.serviceTypeCode === "DESIGN_ONLY" ||
-          data.serviceTypeCode === "DESIGN_AND_PRODUCTION"
-            ? designItems
-            : [],
-      };
-
       if (isEditing && selectedOrder) {
+        // Map form fields to API fields for update
+        const updateData = {
+          fullName: data.fullName,
+          shopName: data.shopName,
+          tel: data.tel,
+          email: data.email || null,
+          facebook: data.facebook || null,
+          line: data.line || null,
+          serviceTypeCode: data.serviceTypeCode,
+          statusCode: data.status, // form uses 'status', API uses 'statusCode'
+          paymentStatusCode: data.paymentStatus, // form uses 'paymentStatus', API uses 'paymentStatusCode'
+          shippingName: data.shippingName || null,
+          shippingTel: data.shippingTel || null,
+          shippingAddress: data.shippingAddress || null,
+          themeCode: data.themeCode || null,
+          colorCodes: data.colorCodes || [],
+          designInfoText: data.designInfoText || null,
+          designerOwnerId: data.assigneeId ? Number(data.assigneeId) : null,
+          // Include items for design service types
+          items:
+            data.serviceTypeCode === "DESIGN_ONLY" ||
+            data.serviceTypeCode === "DESIGN_AND_PRODUCTION"
+              ? designItems
+              : [],
+        };
+
         await updateOrder(
           String((selectedOrder as any).id ?? ""),
-          orderData as any
+          updateData as any
         );
         toast({
           title: "สำเร็จ",
           description: "อัปเดตออเดอร์เรียบร้อย",
         });
       } else {
-        await createOrder(orderData as any);
+        // Create new order
+        const createData = {
+          fullName: data.fullName,
+          shopName: data.shopName,
+          tel: data.tel,
+          email: data.email || null,
+          facebook: data.facebook || null,
+          line: data.line || null,
+          serviceTypeCode: data.serviceTypeCode,
+          shippingName: data.shippingName || null,
+          shippingTel: data.shippingTel || null,
+          shippingAddress: data.shippingAddress || null,
+          themeCode: data.themeCode || null,
+          colorCodes: data.colorCodes || [],
+          designInfoText: data.designInfoText || null,
+          items:
+            data.serviceTypeCode === "DESIGN_ONLY" ||
+            data.serviceTypeCode === "DESIGN_AND_PRODUCTION"
+              ? designItems
+              : [],
+        };
+        await createOrder(createData as any);
         toast({
           title: "สำเร็จ",
           description: "สร้างออเดอร์ใหม่เรียบร้อย",
@@ -637,7 +607,7 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
                             {statusOptions.map((option) => (
                               <SelectItem
                                 key={option.value}
-                                value={option.value}
+                                value={option.code}
                               >
                                 {option.label}
                               </SelectItem>
@@ -668,7 +638,7 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
                             {paymentStatusOptions.map((option) => (
                               <SelectItem
                                 key={option.value}
-                                value={option.value}
+                                value={option.code}
                               >
                                 {option.label}
                               </SelectItem>
@@ -858,48 +828,6 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
                 {/* ข้อมูลสำหรับการออกแบบ: งานชิ้นที่ (นำมาจาก webcopy/order.js -> createDesign) */}
                 <OrderDesignItems
                   serviceTypeCode={form.watch("serviceTypeCode")}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {/* Design Information - Only show for design service types */}
-          {form.watch("serviceTypeCode") === "DESIGN_ONLY" ||
-          form.watch("serviceTypeCode") === "DESIGN_AND_PRODUCTION" ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>ข้อมูลการออกแบบ</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="designInfo.concept"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>แนวคิดการออกแบบ</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="อธิบายแนวคิดการออกแบบ"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="designInfo.notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>หมายเหตุ</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="หมายเหตุเพิ่มเติม" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
                 />
               </CardContent>
             </Card>

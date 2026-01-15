@@ -29,12 +29,16 @@ export const PERMISSIONS = {
     'orders:assign': [ROLES.SUPER_ADMIN, ROLES.ADMIN], // มอบหมายงาน
     'orders:update_status': [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DESIGNER_INHOUSE],
 
-    // Members
-    'members:view': [ROLES.SUPER_ADMIN, ROLES.ADMIN],
-    'members:create': [ROLES.SUPER_ADMIN, ROLES.ADMIN],
-    'members:edit': [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+    // Members - เฉพาะ SUPER_ADMIN เท่านั้น
+    'members:view': [ROLES.SUPER_ADMIN],
+    'members:create': [ROLES.SUPER_ADMIN],
+    'members:edit': [ROLES.SUPER_ADMIN],
     'members:delete': [ROLES.SUPER_ADMIN],
-    'members:manage_roles': [ROLES.SUPER_ADMIN], // เปลี่ยน role
+    'members:manage_roles': [ROLES.SUPER_ADMIN],
+
+    // Profile - ทุกคนแก้ไขข้อมูลตัวเองได้
+    'profile:view': [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DESIGNER_INHOUSE, ROLES.STAFF],
+    'profile:edit': [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DESIGNER_INHOUSE, ROLES.STAFF],
 
     // Masters (ข้อมูลมาตรฐาน)
     'masters:view': [ROLES.SUPER_ADMIN, ROLES.ADMIN],

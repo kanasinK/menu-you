@@ -43,16 +43,29 @@ export interface ApiError {
 
 export class OrderApiService {
   static async createOrder(data: CreateOrderRequest): Promise<CreateOrderResponse> {
-    console.log('🚀 Calling API /api/orders with data:', data)
     const resp = await http.post<CreateOrderResponse>('/api/orders', data)
-    console.log('✅ API Response:', resp)
-    console.log('📬 Response data:', resp.data)
     return resp.data
+  }
+
+  static async updateOrder(id: string | number, data: Partial<Order>): Promise<Order> {
+    const resp = await http.put<Order>(`/api/orders/${id}`, data)
+    return this.normalizeOrderRow(resp.data)
   }
 
   // แปลงแถวจาก DB (snake_case) เป็น Order (camelCase) แบบให้ใช้งานได้ในตาราง
   private static normalizeOrderRow = (row: unknown): Order => {
     const c = toCamelCaseObject(row || {}) as Record<string, unknown>
+
+    // แปลง moodTone จาก JSON string เป็น array
+    const parseMoodTone = (): string[] | null => {
+      if (Array.isArray(c.moodTone)) return c.moodTone as string[]
+      if (typeof c.moodTone === 'string') {
+        try { return JSON.parse(c.moodTone) as string[] } catch { return null }
+      }
+      return (c.moodTone as string[] | null | undefined) ?? null
+    }
+    const moodToneArray = parseMoodTone()
+
     // สำคัญ: ฟิลด์ที่หน้า UI ใช้
     return {
       id: (c.id as number | undefined),
@@ -69,13 +82,13 @@ export class OrderApiService {
       facebook: (c.facebook as string | null | undefined) ?? null,
       line: (c.line as string | null | undefined) ?? null,
       designerOwnerId: (c.designerOwnerId as number | null | undefined) ?? (c.designer_owner_id as number | null | undefined) ?? null,
-      moodTone: Array.isArray(c.moodTone)
-        ? (c.moodTone as string[])
-        : typeof c.moodTone === 'string'
-          ? (() => { try { return JSON.parse(c.moodTone as string) as string[] } catch { return null } })()
-          : ((c.moodTone as string[] | null | undefined) ?? null),
+      moodTone: moodToneArray,
+      // colorCodes เป็น alias ของ moodTone สำหรับ form
+      colorCodes: moodToneArray,
       themeCode: (c.themeCode as string | null | undefined) ?? (c.theme_code as string | null | undefined) ?? null,
       brief: (c.brief as string | null | undefined) ?? null,
+      // designInfoText เป็น alias ของ brief สำหรับ form
+      designInfoText: (c.brief as string | null | undefined) ?? null,
       price: (c.price as number | null | undefined) ?? null,
       designerBudget: (c.designerBudget as number | null | undefined) ?? (c.designer_budget as number | null | undefined) ?? null,
       fileUrl: (c.fileUrl as string | null | undefined) ?? (c.file_url as string | null | undefined) ?? null,
@@ -88,8 +101,22 @@ export class OrderApiService {
       shippingTel: (c.shippingTel as string | null | undefined) ?? (c.shipping_tel as string | null | undefined) ?? null,
       shippingPrice: (c.shippingPrice as number | null | undefined) ?? (c.shipping_price as number | null | undefined) ?? null,
       acceptDate: (c.acceptDate as string | null | undefined) ?? (c.accept_date as string | null | undefined) ?? null,
-      createdAt: (c.createdAt as string | undefined) || (c.created_date as string | undefined) || new Date().toISOString(),
-      updatedAt: (c.updatedAt as string | undefined) || (c.updated_date as string | undefined) || new Date().toISOString(),
+      createdAt: (c.createdAt as string | undefined) || (c.createdDate as string | undefined) || (c.created_date as string | undefined) || new Date().toISOString(),
+      updatedAt: (c.updatedAt as string | undefined) || (c.updatedDate as string | undefined) || (c.updated_date as string | undefined) || new Date().toISOString(),
+      // Items from order_item table
+      items: Array.isArray(c.items) ? (c.items as any[]).map(item => ({
+        productCode: item.item_type_code || item.itemTypeCode || null,
+        productOther: item.item_type_other || item.itemTypeOther || null,
+        sizeCode: item.size_code || item.sizeCode || null,
+        sizeWidth: item.width || item.sizeWidth || null,
+        sizeHeight: item.height || item.sizeHeight || null,
+        orientationCode: item.layout_code || item.layoutCode || null,
+        coatingCode: item.texture_code || item.textureCode || null,
+        pageOptionCode: item.side_code || item.sideCode || null,
+        imageOptionCode: item.image_code || item.imageCode || null,
+        brandOptionCode: item.decorate_code || item.decorateCode || null,
+        quantity: item.quantity || null,
+      })) : [],
     }
   }
 
@@ -137,14 +164,29 @@ export class OrderApiService {
     const client = getSupabase()
     if (!client) throw new Error('Supabase not configured')
 
-    const { data, error } = await client
+    // ดึง order
+    const { data: order, error: orderError } = await client
       .from('orders')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (error) throw error
-    if (!data) return undefined
-    return this.normalizeOrderRow(data)
+    if (orderError) throw orderError
+    if (!order) return undefined
+
+    // ดึง order items
+    const { data: items, error: itemsError } = await client
+      .from('order_item')
+      .select('*')
+      .eq('order_id', id)
+
+    if (itemsError) {
+      console.error('Error fetching order items:', itemsError)
+    }
+
+    // รวม items เข้ากับ order
+    const orderWithItems = { ...order, items: items || [] }
+
+    return this.normalizeOrderRow(orderWithItems)
   }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 const memberFormSchema = z.object({
   userName: z.string().min(1, "ชื่อผู้ใช้จำเป็น"),
   nickname: z.string().optional(),
-  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").or(z.literal("")),
+  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").min(1, "อีเมลจำเป็น"),
   password: z
     .string()
     .min(4, "รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร")
@@ -59,6 +59,7 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // โหลด masters ครั้งเดียวตอน mount
   useEffect(() => {
@@ -84,6 +85,8 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
     if (memberId) {
       const member = getMemberById(memberId);
       if (member) {
+        console.log("Member data:", member);
+        console.log("Role code:", member.roleCode);
         form.reset({
           userName: member.userName,
           nickname: member.nickname ?? "",
@@ -115,7 +118,7 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
         await updateMember(memberId, {
           userName: data.userName,
           nickname: data.nickname || null,
-          email: data.email || null,
+          email: data.email,
           password: data.password || undefined,
           roleCode: data.roleCode,
           status: data.status === "active",
@@ -128,7 +131,7 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
         await createMember({
           userName: data.userName,
           nickname: data.nickname || null,
-          email: data.email || null,
+          email: data.email,
           password: data.password || null,
           roleCode: data.roleCode,
           status: data.status === "active",
@@ -164,6 +167,9 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
   ];
 
   const roleOptions = roles.length > 0 ? roles : defaultRoles;
+
+  console.log("Role options:", roleOptions);
+  console.log("Current form roleCode value:", form.watch("roleCode"));
 
   return (
     <Form {...form}>
@@ -208,7 +214,9 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>อีเมล</FormLabel>
+                <FormLabel>
+                  อีเมล <span className="text-destructive">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="กรุณาใส่อีเมล" {...field} />
                 </FormControl>
@@ -228,11 +236,26 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
                     : "รหัสผ่าน"}
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="กรุณาใส่รหัสผ่าน"
-                    {...field}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="กรุณาใส่รหัสผ่าน"
+                      {...field}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -245,7 +268,12 @@ export function MemberForm({ memberId, onSuccess }: MemberFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>บทบาท</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  key={field.value || "empty"}
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="เลือกบทบาท" />

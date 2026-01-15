@@ -63,7 +63,6 @@ export const useMemberStore = create<MemberStore>()(
             email: m.email as string | null,
             roleCode: m.role_code as string,
             status: m.status as boolean,
-            password: m.password as string | null,
             createdAt: m.created_date as string,
             updatedAt: m.updated_date as string,
           }));

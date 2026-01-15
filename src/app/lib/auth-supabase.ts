@@ -16,20 +16,29 @@ export interface AuthResponse {
 }
 
 /**
- * ค้นหา email จาก username
+ * ค้นหา email และ auth_user_id จาก username
  */
-async function getEmailByUsername(username: string): Promise<string | null> {
+async function getMemberByUsername(username: string): Promise<{ email: string; auth_user_id: string | null } | null> {
   const supabase = getSupabase()
   if (!supabase) return null
 
   const { data, error } = await supabase
     .from('members')
-    .select('email')
+    .select('email, auth_user_id')
     .eq('user_name', username)
     .single()
 
-  if (error || !data?.email) return null
-  return data.email
+  if (error || !data) return null
+
+  // Email เป็น required field แล้ว
+  if (!data.email) {
+    return null
+  }
+
+  return {
+    email: data.email,
+    auth_user_id: data.auth_user_id
+  }
 }
 
 /**
@@ -51,16 +60,27 @@ export async function signIn(usernameOrEmail: string, password: string): Promise
     // ตรวจสอบว่าเป็น email หรือ username
     let email = usernameOrEmail
     if (!usernameOrEmail.includes('@')) {
-      // ถ้าไม่มี @ แสดงว่าเป็น username ให้หา email
-      const foundEmail = await getEmailByUsername(usernameOrEmail)
-      if (!foundEmail) {
+      // ถ้าไม่มี @ แสดงว่าเป็น username ให้หาข้อมูล member
+      const memberData = await getMemberByUsername(usernameOrEmail)
+
+      if (!memberData) {
         return {
           user: null,
           session: null,
-          error: new Error('ไม่พบชื่อผู้ใช้นี้ในระบบ')
+          error: new Error('ไม่พบชื่อผู้ใช้นี้ในระบบหรือบัญชีไม่มีอีเมล')
         }
       }
-      email = foundEmail
+
+      // ตรวจสอบว่า member มี auth_user_id หรือไม่
+      if (!memberData.auth_user_id) {
+        return {
+          user: null,
+          session: null,
+          error: new Error('บัญชีนี้ยังไม่ได้เชื่อมโยงกับระบบ Authentication กรุณาติดต่อผู้ดูแลระบบ')
+        }
+      }
+
+      email = memberData.email
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({

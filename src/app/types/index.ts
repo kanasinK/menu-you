@@ -122,10 +122,10 @@ export const MemberSchema = z.object({
   id: z.number().optional(),
   userName: z.string().min(1, 'ชื่อผู้ใช้จำเป็น'),
   nickname: z.string().nullable(),
-  email: z.string().email('อีเมลไม่ถูกต้อง').nullable(),
+  email: z.string().email('อีเมลไม่ถูกต้อง').min(1, 'อีเมลจำเป็น'),
   roleCode: z.string().min(1, 'บทบาทจำเป็น'),
   status: z.boolean().default(true),
-  password: z.string().nullable(),
+  // password ไม่ควรเก็บในตาราง members - ใช้ Supabase Auth แทน
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -147,8 +147,10 @@ export const OrderSchema = z.object({
   line: z.string().nullable(),
   designerOwnerId: z.number().nullable(),
   moodTone: z.array(z.string()).nullable(), // Array of color codes
+  colorCodes: z.array(z.string()).nullable(), // Alias of moodTone for form
   themeCode: z.string().nullable(),
   brief: z.string().nullable(), // ข้อมูลเพิ่มเติมการออกแบบเท่านั้น
+  designInfoText: z.string().nullable(), // Alias of brief for form
   price: z.number().nullable(),
   designerBudget: z.number().nullable(),
   fileUrl: z.string().nullable(),
