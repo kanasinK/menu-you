@@ -14,6 +14,8 @@ const orderItemSchema = z.object({
   imageOptionCode: z.string().nullable().optional(),
   brandOptionCode: z.string().nullable().optional(),
   quantity: z.number().nullable().optional(),
+  itemPrice: z.number().nullable().optional(),      // ราคาผลิตต่อชิ้น
+  designerPrice: z.number().nullable().optional(),  // ค่าออกแบบ
 })
 
 const requestSchema = z
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     console.log('🔵 API received body:', body)
     console.log('🔵 Items received:', body.items)
-    
+
     const parsed = requestSchema.parse(body)
 
     const statusCode = 'PENDING'
@@ -172,11 +174,11 @@ export async function POST(req: Request) {
       image_code: item.imageOptionCode || null,
       decorate_code: item.brandOptionCode || null,
       quantity: item.quantity ?? null,
+      item_price: item.itemPrice ?? null,
+      designer_price: item.designerPrice ?? null,
       production_owner_id: null,
       material_code: null,
       material_other: null,
-      item_price: null,
-      designer_price: null,
       tool_type_code: null,
     }))
 

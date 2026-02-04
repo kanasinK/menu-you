@@ -14,10 +14,13 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useMasterStore } from "@/store/masterStore";
+import { OrderItemPricing } from "@/components/forms/OrderItemPricing";
 
 interface OrderDesignItemsProps {
   serviceTypeCode: string;
   name?: string;
+  showPricing?: boolean; // แสดงส่วนราคา (สำหรับ admin/staff)
+  readOnly?: boolean;
 }
 
 // [Assumption]: ใช้ code ค่า "OTHER" และ "CUSTOM" สำหรับตัวเลือก "อื่นๆ" และ "กำหนดเอง"
@@ -29,6 +32,8 @@ const isDesignService = (serviceTypeCode: string) =>
 export const OrderDesignItems = ({
   serviceTypeCode,
   name = "items",
+  showPricing = false,
+  readOnly = false,
 }: OrderDesignItemsProps) => {
   const form = useFormContext();
   const { control, watch } = form;
@@ -61,6 +66,8 @@ export const OrderDesignItems = ({
           imageOptionCode: "",
           brandOptionCode: "",
           quantity: "",
+          itemPrice: "",
+          designerPrice: "",
         });
       }
     }, 0);
@@ -74,7 +81,7 @@ export const OrderDesignItems = ({
     fieldName: string,
     label: string,
     options: Array<{ value: string; label: string; code: string }>,
-    idx: number
+    idx: number,
   ) => (
     <FormField
       control={control}
@@ -132,12 +139,12 @@ export const OrderDesignItems = ({
                     variant="destructive"
                     size="sm"
                     onClick={() => remove(index)}
-                    disabled={fields.length <= 1}
+                    disabled={fields.length <= 1 || readOnly}
                     className="shadow-md"
                   >
                     ลบชิ้นงาน
                   </Button>
-                  {index === fields.length - 1 && (
+                  {index === fields.length - 1 && !readOnly && (
                     <Button
                       type="button"
                       size="sm"
@@ -154,6 +161,8 @@ export const OrderDesignItems = ({
                           imageOptionCode: "",
                           brandOptionCode: "",
                           quantity: "",
+                          itemPrice: "",
+                          designerPrice: "",
                         })
                       }
                       className="bg-green-600 hover:bg-green-700 shadow-md"
@@ -225,7 +234,7 @@ export const OrderDesignItems = ({
                                 onChange={(e) => {
                                   const value = e.target.value.replace(
                                     /[^0-9.]/g,
-                                    ""
+                                    "",
                                   );
                                   field.onChange(value);
                                 }}
@@ -251,7 +260,7 @@ export const OrderDesignItems = ({
                                 onChange={(e) => {
                                   const value = e.target.value.replace(
                                     /[^0-9.]/g,
-                                    ""
+                                    "",
                                   );
                                   field.onChange(value);
                                 }}
@@ -277,13 +286,13 @@ export const OrderDesignItems = ({
                     "orientationCode",
                     "ลักษณะงาน",
                     orientations,
-                    index
+                    index,
                   )}
                   {renderRadioGroup(
                     "coatingCode",
                     "ประเภทเคลือบ/ผิวสัมผัส",
                     coatings,
-                    index
+                    index,
                   )}
                 </div>
               </div>
@@ -298,19 +307,19 @@ export const OrderDesignItems = ({
                     "pageOptionCode",
                     "งานพิมพ์ หน้าเดียว/หน้าหลัง",
                     pageOptions,
-                    index
+                    index,
                   )}
                   {renderRadioGroup(
                     "imageOptionCode",
                     "รูปภาพ",
                     imageOptions,
-                    index
+                    index,
                   )}
                   {renderRadioGroup(
                     "brandOptionCode",
                     "โลโก้/ชื่อร้าน",
                     brandOptions,
-                    index
+                    index,
                   )}
                 </div>
               </div>
@@ -333,6 +342,7 @@ export const OrderDesignItems = ({
                           <Input
                             inputMode="numeric"
                             placeholder="เช่น 100"
+                            disabled={readOnly}
                             {...field}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
@@ -347,6 +357,20 @@ export const OrderDesignItems = ({
                   />
                 </div>
               </div>
+
+              {/* ส่วนราคา (สำหรับ admin/staff) */}
+              {showPricing && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-700 border-b pb-2">
+                    ราคา
+                  </h3>
+                  <OrderItemPricing
+                    index={index}
+                    name={name}
+                    readOnly={readOnly}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         );

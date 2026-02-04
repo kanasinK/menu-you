@@ -100,6 +100,11 @@ export class OrderApiService {
       shipperOwnerId: (c.shipperOwnerId as number | null | undefined) ?? (c.shipper_owner_id as number | null | undefined) ?? null,
       shippingTel: (c.shippingTel as string | null | undefined) ?? (c.shipping_tel as string | null | undefined) ?? null,
       shippingPrice: (c.shippingPrice as number | null | undefined) ?? (c.shipping_price as number | null | undefined) ?? null,
+      // Pricing totals (for reports)
+      itemsTotal: (c.itemsTotal as number | null | undefined) ?? (c.items_total as number | null | undefined) ?? null,
+      materialsTotal: (c.materialsTotal as number | null | undefined) ?? (c.materials_total as number | null | undefined) ?? null,
+      subtotal: (c.subtotal as number | null | undefined) ?? null,
+      grandTotal: (c.grandTotal as number | null | undefined) ?? (c.grand_total as number | null | undefined) ?? null,
       acceptDate: (c.acceptDate as string | null | undefined) ?? (c.accept_date as string | null | undefined) ?? null,
       createdAt: (c.createdAt as string | undefined) || (c.createdDate as string | undefined) || (c.created_date as string | undefined) || new Date().toISOString(),
       updatedAt: (c.updatedAt as string | undefined) || (c.updatedDate as string | undefined) || (c.updated_date as string | undefined) || new Date().toISOString(),
@@ -116,6 +121,19 @@ export class OrderApiService {
         imageOptionCode: item.image_code || item.imageCode || null,
         brandOptionCode: item.decorate_code || item.decorateCode || null,
         quantity: item.quantity || null,
+        itemPrice: item.item_price || item.itemPrice || null,
+        designerPrice: item.designer_price || item.designerPrice || null,
+        sumItemPrice: item.sum_item_price || item.sumItemPrice || null,
+        totalPrice: item.total_price || item.totalPrice || null,
+      })) : [],
+      // Materials from order_materials table
+      materials: Array.isArray(c.materials) ? (c.materials as any[]).map(mat => ({
+        materialCode: mat.material_code || mat.materialCode || null,
+        materialOther: mat.material_other || mat.materialOther || null,
+        quantity: mat.quantity || 0,
+        price: mat.price || 0,
+        totalPrice: mat.total_price || mat.totalPrice || 0,
+        note: mat.note || null,
       })) : [],
     }
   }
@@ -184,8 +202,18 @@ export class OrderApiService {
       console.error('Error fetching order items:', itemsError)
     }
 
-    // รวม items เข้ากับ order
-    const orderWithItems = { ...order, items: items || [] }
+    // ดึง order materials
+    const { data: materials, error: materialsError } = await client
+      .from('order_materials')
+      .select('*')
+      .eq('order_id', id)
+
+    if (materialsError) {
+      console.error('Error fetching order materials:', materialsError)
+    }
+
+    // รวม items และ materials เข้ากับ order
+    const orderWithItems = { ...order, items: items || [], materials: materials || [] }
 
     return this.normalizeOrderRow(orderWithItems)
   }

@@ -177,6 +177,11 @@ export const OrderSchema = z.object({
   shipperOwnerId: z.number().nullable(),
   shippingTel: z.string().nullable(),
   shippingPrice: z.number().nullable(),
+  // Pricing totals (for reports)
+  itemsTotal: z.number().nullable(),
+  materialsTotal: z.number().nullable(),
+  subtotal: z.number().nullable(),
+  grandTotal: z.number().nullable(),
   acceptDate: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -197,8 +202,10 @@ export const OrderItemSchema = z.object({
   materialCode: z.string().nullable(),
   materialOther: z.string().nullable(),
   quantity: z.number().nullable(),
-  itemPrice: z.number().nullable(),
-  designerPrice: z.number().nullable(),
+  itemPrice: z.number().nullable(),        // ราคาผลิตต่อชิ้น
+  designerPrice: z.number().nullable(),    // ค่าออกแบบ
+  sumItemPrice: z.number().nullable(),     // ค่าผลิตรวม (quantity × itemPrice)
+  totalPrice: z.number().nullable(),       // ราคารวมต่อชิ้นงาน (sumItemPrice + designerPrice)
   toolTypeCode: z.string().nullable(),
   height: z.number().nullable(),
   itemTypeCode: z.string().nullable(),
@@ -214,7 +221,8 @@ export const MaterialsSchema = z.object({
   materialCode: z.string().nullable(),
   materialOther: z.string().nullable(),
   quantity: z.number().nullable(),
-  price: z.number().nullable(),
+  price: z.number().nullable(),           // ราคาต่อชิ้น
+  totalPrice: z.number().nullable(),      // ราคารวม (quantity × price)
   note: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),

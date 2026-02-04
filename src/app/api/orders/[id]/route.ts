@@ -2,6 +2,22 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseServer } from '@/lib/supabase'
 
+// Helper function สำหรับคำนวณราคา
+function calculateItemPrices(item: { quantity?: number | null; itemPrice?: number | null; designerPrice?: number | null }) {
+    const quantity = item.quantity ?? 0
+    const itemPrice = item.itemPrice ?? 0
+    const designerPrice = item.designerPrice ?? 0
+    const sumItemPrice = quantity * itemPrice
+    const totalPrice = sumItemPrice + designerPrice
+    return { sumItemPrice, totalPrice }
+}
+
+function calculateMaterialPrice(mat: { quantity?: number | null; price?: number | null }) {
+    const quantity = mat.quantity ?? 0
+    const price = mat.price ?? 0
+    return quantity * price
+}
+
 const orderItemSchema = z.object({
     productCode: z.string().nullable().optional(),
     productOther: z.string().nullable().optional(),
@@ -14,6 +30,16 @@ const orderItemSchema = z.object({
     imageOptionCode: z.string().nullable().optional(),
     brandOptionCode: z.string().nullable().optional(),
     quantity: z.number().nullable().optional(),
+    itemPrice: z.number().nullable().optional(),      // ราคาผลิตต่อชิ้น
+    designerPrice: z.number().nullable().optional(),  // ค่าออกแบบ
+})
+
+const orderMaterialSchema = z.object({
+    materialCode: z.string().nullable().optional(),
+    materialOther: z.string().nullable().optional(),
+    quantity: z.number().nullable().optional(),
+    price: z.number().nullable().optional(),
+    note: z.string().nullable().optional(),
 })
 
 const updateSchema = z.object({
@@ -33,7 +59,13 @@ const updateSchema = z.object({
     colorCodes: z.array(z.string()).optional().nullable(),
     designInfoText: z.string().optional().nullable(),
     designerOwnerId: z.number().optional().nullable(),
+    // ฟิลด์ราคา
+    discount: z.number().optional().nullable(),
+    shippingPrice: z.number().optional().nullable(),
+    paid: z.number().optional().nullable(),
+    price: z.number().optional().nullable(),
     items: z.array(orderItemSchema).optional().nullable(),
+    materials: z.array(orderMaterialSchema).optional().nullable(),
 })
 
 interface RouteParams {
@@ -46,7 +78,7 @@ export async function GET(req: Request, { params }: RouteParams) {
         const supabase = getSupabaseServer()
         if (!supabase) return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 })
 
-        // ดึง order พร้อม items
+        // ดึง order
         const { data: order, error: orderError } = await supabase
             .from('orders')
             .select('*')
@@ -65,7 +97,17 @@ export async function GET(req: Request, { params }: RouteParams) {
             console.error('Error fetching order items:', itemsError)
         }
 
-        return NextResponse.json({ ...order, items: items || [] })
+        // ดึง order materials
+        const { data: materials, error: materialsError } = await supabase
+            .from('order_materials')
+            .select('*')
+            .eq('order_id', id)
+
+        if (materialsError) {
+            console.error('Error fetching order materials:', materialsError)
+        }
+
+        return NextResponse.json({ ...order, items: items || [], materials: materials || [] })
     } catch (err) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
@@ -103,6 +145,11 @@ export async function PUT(req: Request, { params }: RouteParams) {
         }
         if (parsed.designInfoText !== undefined) updatePayload.brief = parsed.designInfoText
         if (parsed.designerOwnerId !== undefined) updatePayload.designer_owner_id = parsed.designerOwnerId
+        // ฟิลด์ราคา
+        if (parsed.discount !== undefined) updatePayload.discount = parsed.discount
+        if (parsed.shippingPrice !== undefined) updatePayload.shipping_price = parsed.shippingPrice
+        if (parsed.paid !== undefined) updatePayload.paid = parsed.paid
+        if (parsed.price !== undefined) updatePayload.price = parsed.price
 
         const { data, error } = await supabase
             .from('orders')
@@ -116,6 +163,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
         }
 
         // Update items if provided
+        let itemsTotal = 0
         if (parsed.items !== undefined) {
             const orderId = Number(id)
 
@@ -124,26 +172,88 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
             // Insert items ใหม่
             if (parsed.items && parsed.items.length > 0) {
-                const mappedItems = parsed.items.map((item) => ({
-                    order_id: orderId,
-                    item_type_code: item.productCode || null,
-                    item_type_other: item.productOther || null,
-                    size_code: item.sizeCode || null,
-                    width: item.sizeWidth ?? null,
-                    height: item.sizeHeight ?? null,
-                    layout_code: item.orientationCode || null,
-                    texture_code: item.coatingCode || null,
-                    side_code: item.pageOptionCode || null,
-                    image_code: item.imageOptionCode || null,
-                    decorate_code: item.brandOptionCode || null,
-                    quantity: item.quantity ?? null,
-                }))
+                const mappedItems = parsed.items.map((item) => {
+                    const { sumItemPrice, totalPrice } = calculateItemPrices(item)
+                    itemsTotal += totalPrice
+                    return {
+                        order_id: orderId,
+                        item_type_code: item.productCode || null,
+                        item_type_other: item.productOther || null,
+                        size_code: item.sizeCode || null,
+                        width: item.sizeWidth ?? null,
+                        height: item.sizeHeight ?? null,
+                        layout_code: item.orientationCode || null,
+                        texture_code: item.coatingCode || null,
+                        side_code: item.pageOptionCode || null,
+                        image_code: item.imageOptionCode || null,
+                        decorate_code: item.brandOptionCode || null,
+                        quantity: item.quantity ?? null,
+                        item_price: item.itemPrice ?? null,
+                        designer_price: item.designerPrice ?? null,
+                        sum_item_price: sumItemPrice,
+                        total_price: totalPrice,
+                    }
+                })
 
                 const { error: itemErr } = await supabase.from('order_item').insert(mappedItems)
                 if (itemErr) {
                     console.error('Items update error:', itemErr)
                 }
             }
+        }
+
+        // Update materials if provided
+        let materialsTotal = 0
+        if (parsed.materials !== undefined) {
+            const orderId = Number(id)
+
+            // ลบ materials เดิมก่อน
+            const { error: delErr } = await supabase.from('order_materials').delete().eq('order_id', orderId)
+            if (delErr) {
+                console.error('Materials delete error:', delErr)
+            }
+
+            // Insert materials ใหม่
+            if (parsed.materials && parsed.materials.length > 0) {
+                const mappedMaterials = parsed.materials.map((mat) => {
+                    const totalPrice = calculateMaterialPrice(mat)
+                    materialsTotal += totalPrice
+                    return {
+                        order_id: orderId,
+                        material_code: mat.materialCode || null,
+                        material_other: mat.materialOther || null,
+                        quantity: mat.quantity ?? 0,
+                        price: mat.price ?? 0,
+                        total_price: totalPrice,
+                        note: mat.note || null,
+                    }
+                })
+
+                const { error: matErr } = await supabase.from('order_materials').insert(mappedMaterials)
+                if (matErr) {
+                    console.error('Materials insert error:', matErr)
+                }
+            }
+        }
+
+        // อัปเดตราคารวมใน orders
+        const discount = parsed.discount ?? 0
+        const shippingPrice = parsed.shippingPrice ?? 0
+        const subtotal = itemsTotal + materialsTotal
+        const grandTotal = subtotal - discount + shippingPrice
+
+        const { error: updatePriceErr } = await supabase
+            .from('orders')
+            .update({
+                items_total: itemsTotal,
+                materials_total: materialsTotal,
+                subtotal: subtotal,
+                grand_total: grandTotal,
+            })
+            .eq('id', id)
+
+        if (updatePriceErr) {
+            console.error('Update price totals error:', updatePriceErr)
         }
 
         return NextResponse.json(data[0])

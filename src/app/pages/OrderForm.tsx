@@ -33,6 +33,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ColorCodesField } from "@/components/forms/ColorCodesField";
 import { ThemeField } from "@/components/forms/ThemeField";
 import OrderDesignItems from "@/components/forms/OrderDesignItems";
+import { OrderPricing } from "@/components/forms/OrderPricing";
+import { MaterialsForm } from "@/components/forms/MaterialsForm";
 
 const orderFormSchema = z
   .object({
@@ -42,7 +44,7 @@ const orderFormSchema = z
     colorCodes: z.array(z.string()).optional(),
     status: z.string().min(1, "สถานะจำเป็น"),
     paymentStatus: z.string().min(1, "สถานะการชำระเงินจำเป็น"),
-    assigneeId: z.string().min(1, "ผู้รับผิดชอบจำเป็น"),
+    assigneeId: z.string().optional(), // เปลี่ยนเป็น optional
     // Additional fields from web form
     fullName: z
       .string()
@@ -55,7 +57,7 @@ const orderFormSchema = z
       .min(1, "เบอร์โทรศัพท์จำเป็น")
       .regex(
         /^0\d{8,9}$/,
-        "เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 และมี 9-10 หลัก)"
+        "เบอร์โทรศัพท์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 และมี 9-10 หลัก)",
       ),
     email: z
       .string()
@@ -89,9 +91,30 @@ const orderFormSchema = z
           imageOptionCode: z.string().optional(),
           brandOptionCode: z.string().optional(),
           quantity: z.string().optional(),
-        })
+          itemPrice: z.string().optional(),
+          designerPrice: z.string().optional(),
+        }),
       )
       .optional(),
+
+    // Materials/Equipment
+    materials: z
+      .array(
+        z.object({
+          materialCode: z.string().optional(),
+          materialOther: z.string().optional(),
+          quantity: z.string().optional(),
+          price: z.string().optional(),
+          note: z.string().optional(),
+        }),
+      )
+      .optional(),
+
+    // Pricing fields
+    discount: z.number().optional(),
+    shippingPrice: z.number().optional(),
+    paid: z.number().optional(),
+    price: z.number().optional(),
   })
   .refine(
     (data) => {
@@ -101,7 +124,7 @@ const orderFormSchema = z
     {
       message: "กรุณากรอก Facebook หรือ Line อย่างน้อย 1 ช่องทาง",
       path: ["facebook"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -117,7 +140,7 @@ const orderFormSchema = z
     {
       message: "ชื่อผู้รับจำเป็นสำหรับบริการจัดส่ง",
       path: ["shippingName"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -133,7 +156,7 @@ const orderFormSchema = z
     {
       message: "เบอร์โทรศัพท์ผู้รับจำเป็นและต้องถูกต้องสำหรับบริการจัดส่ง",
       path: ["shippingTel"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -149,7 +172,7 @@ const orderFormSchema = z
     {
       message: "ที่อยู่จัดส่งจำเป็นสำหรับบริการจัดส่ง",
       path: ["shippingAddress"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -165,7 +188,7 @@ const orderFormSchema = z
     {
       message: "ธีมจำเป็นสำหรับบริการออกแบบ",
       path: ["themeCode"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -185,7 +208,7 @@ const orderFormSchema = z
     {
       message: "กรุณาเลือกสี 1-3 สีสำหรับบริการออกแบบ",
       path: ["colorCodes"],
-    }
+    },
   );
 
 type OrderFormData = z.infer<typeof orderFormSchema>;
@@ -226,6 +249,11 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
       shippingAddress: "",
       designInfoText: "",
       items: [],
+      materials: [],
+      discount: 0,
+      shippingPrice: 0,
+      paid: 0,
+      price: 0,
     },
   });
 
@@ -247,17 +275,17 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
         status: String(
           (selectedOrder as any).statusCode ??
             (selectedOrder as any).status ??
-            ""
+            "",
         ),
         paymentStatus: String(
           (selectedOrder as any).paymentStatusCode ??
             (selectedOrder as any).paymentStatus ??
-            ""
+            "",
         ),
         assigneeId: String(
           (selectedOrder as any).designerOwnerId ??
             (selectedOrder as any).assigneeId ??
-            ""
+            "",
         ),
         fullName: selectedOrder.fullName || "",
         shopName: selectedOrder.shopName || "",
@@ -273,18 +301,48 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
         designInfoText: (selectedOrder as any).designInfoText || "",
         // Items from order_item
         items: ((selectedOrder as any).items || []).map((item: any) => ({
-          productCode: item.productCode || "",
-          productOther: item.productOther || "",
-          sizeCode: item.sizeCode || "",
-          sizeWidth: item.sizeWidth ? String(item.sizeWidth) : "",
-          sizeHeight: item.sizeHeight ? String(item.sizeHeight) : "",
-          orientationCode: item.orientationCode || "",
-          coatingCode: item.coatingCode || "",
-          pageOptionCode: item.pageOptionCode || "",
-          imageOptionCode: item.imageOptionCode || "",
-          brandOptionCode: item.brandOptionCode || "",
+          productCode: item.productCode || item.item_type_code || "",
+          productOther: item.productOther || item.item_type_other || "",
+          sizeCode: item.sizeCode || item.size_code || "",
+          sizeWidth:
+            item.sizeWidth || item.width
+              ? String(item.sizeWidth || item.width)
+              : "",
+          sizeHeight:
+            item.sizeHeight || item.height
+              ? String(item.sizeHeight || item.height)
+              : "",
+          orientationCode: item.orientationCode || item.layout_code || "",
+          coatingCode: item.coatingCode || item.texture_code || "",
+          pageOptionCode: item.pageOptionCode || item.side_code || "",
+          imageOptionCode: item.imageOptionCode || item.image_code || "",
+          brandOptionCode: item.brandOptionCode || item.decorate_code || "",
           quantity: item.quantity ? String(item.quantity) : "",
+          itemPrice:
+            item.itemPrice || item.item_price
+              ? String(item.itemPrice || item.item_price)
+              : "",
+          designerPrice:
+            item.designerPrice || item.designer_price
+              ? String(item.designerPrice || item.designer_price)
+              : "",
         })),
+        // Materials
+        materials: ((selectedOrder as any).materials || []).map((mat: any) => ({
+          materialCode: mat.materialCode || mat.material_code || "",
+          materialOther: mat.materialOther || mat.material_other || "",
+          quantity: mat.quantity ? String(mat.quantity) : "",
+          price: mat.price ? String(mat.price) : "",
+          note: mat.note || "",
+        })),
+        // Pricing
+        discount: (selectedOrder as any).discount ?? 0,
+        shippingPrice:
+          (selectedOrder as any).shippingPrice ??
+          (selectedOrder as any).shipping_price ??
+          0,
+        paid: (selectedOrder as any).paid ?? 0,
+        price: (selectedOrder as any).price ?? 0,
       };
       form.reset(resetData);
     }
@@ -305,6 +363,18 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
         imageOptionCode: it.imageOptionCode || null,
         brandOptionCode: it.brandOptionCode || null,
         quantity: it.quantity ? Number(it.quantity) : null,
+        itemPrice: it.itemPrice ? Number(it.itemPrice) : null,
+        designerPrice: it.designerPrice ? Number(it.designerPrice) : null,
+      }));
+
+      // Map materials
+      const rawMaterials = (form.getValues("materials") || []) as Array<any>;
+      const orderMaterials = rawMaterials.map((mat) => ({
+        materialCode: mat.materialCode || null,
+        materialOther: mat.materialOther || null,
+        quantity: mat.quantity ? Number(mat.quantity) : 0,
+        price: mat.price ? Number(mat.price) : 0,
+        note: mat.note || null,
       }));
 
       if (isEditing && selectedOrder) {
@@ -326,17 +396,24 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
           colorCodes: data.colorCodes || [],
           designInfoText: data.designInfoText || null,
           designerOwnerId: data.assigneeId ? Number(data.assigneeId) : null,
+          // Pricing fields
+          discount: data.discount ?? null,
+          shippingPrice: data.shippingPrice ?? null,
+          paid: data.paid ?? null,
+          price: data.price ?? null,
           // Include items for design service types
           items:
             data.serviceTypeCode === "DESIGN_ONLY" ||
             data.serviceTypeCode === "DESIGN_AND_PRODUCTION"
               ? designItems
               : [],
+          // Include materials
+          materials: orderMaterials,
         };
 
         await updateOrder(
           String((selectedOrder as any).id ?? ""),
-          updateData as any
+          updateData as any,
         );
         toast({
           title: "สำเร็จ",
@@ -435,7 +512,7 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
                               // Allow only Thai and English letters and spaces
                               const value = e.target.value.replace(
                                 /[^ก-๙a-zA-Z\s]/g,
-                                ""
+                                "",
                               );
                               field.onChange(value);
                             }}
@@ -830,10 +907,17 @@ const OrderForm = ({ orderId }: OrderFormProps) => {
                 {/* ข้อมูลสำหรับการออกแบบ: งานชิ้นที่ (นำมาจาก webcopy/order.js -> createDesign) */}
                 <OrderDesignItems
                   serviceTypeCode={form.watch("serviceTypeCode")}
+                  showPricing={isEditing}
                 />
               </CardContent>
             </Card>
           ) : null}
+
+          {/* Materials/Equipment Section */}
+          {isEditing && <MaterialsForm readOnly={false} />}
+
+          {/* Order Pricing Summary - Only show when editing */}
+          {isEditing && <OrderPricing readOnly={false} />}
 
           {/* Terms and Conditions */}
           <Card>

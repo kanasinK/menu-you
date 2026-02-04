@@ -33,10 +33,11 @@ export async function GET(request: NextRequest) {
         members: members || [],
         count: members?.length || 0,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Members API error:', error)
+      const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก'
       return NextResponse.json(
-        { error: error.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก' },
+        { error: message },
         { status: 500 }
       )
     }
@@ -111,11 +112,13 @@ export async function POST(request: NextRequest) {
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       // 3. ดึงข้อมูล member ที่ถูกสร้างโดย trigger
-      let { data: member, error: memberError } = await supabase
+      const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
         .eq('auth_user_id', authData.user.id)
         .single()
+
+      let member = memberData
 
       // 4. ถ้า trigger สร้าง member แล้ว ให้อัพเดท nickname และ role_code
       if (member) {
@@ -166,10 +169,11 @@ export async function POST(request: NextRequest) {
         member,
         message: 'สร้างสมาชิกสำเร็จ',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Create member error:', error)
+      const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการสร้างสมาชิก'
       return NextResponse.json(
-        { error: error.message || 'เกิดข้อผิดพลาดในการสร้างสมาชิก' },
+        { error: message },
         { status: 500 }
       )
     }
