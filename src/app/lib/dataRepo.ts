@@ -472,10 +472,15 @@ export const orderRepo = {
       shipperOwnerId: order.shipperOwnerId || order.shipper_owner_id,
       shippingTel: order.shippingTel || order.shipping_tel,
       shippingPrice: order.shippingPrice || order.shipping_price,
+      itemsTotal: order.itemsTotal || order.items_total || null,
+      materialsTotal: order.materialsTotal || order.materials_total || null,
+      subtotal: order.subtotal || null,
+      grandTotal: order.grandTotal || order.grand_total || null,
       acceptDate: order.acceptDate || order.accept_date,
       createdAt: order.createdAt || order.created_date,
       updatedAt: order.updatedAt || order.updated_date,
       items: order.items || [],
+      materials: order.materials || [],
     }));
   },
 

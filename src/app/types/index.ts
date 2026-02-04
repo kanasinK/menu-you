@@ -145,6 +145,16 @@ export const OrderItemEmbeddedSchema = z.object({
   quantity: z.number().nullable(),
 });
 
+// Material (for embedding in Order)
+export const MaterialEmbeddedSchema = z.object({
+  materialCode: z.string().nullable(),
+  materialOther: z.string().nullable(),
+  quantity: z.number().nullable(),
+  price: z.number().nullable(),
+  totalPrice: z.number().nullable(),
+  note: z.string().nullable(),
+});
+
 // Order Types
 export const OrderSchema = z.object({
   id: z.number().optional(),
@@ -186,6 +196,7 @@ export const OrderSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   items: z.array(OrderItemEmbeddedSchema).optional(),
+  materials: z.array(MaterialEmbeddedSchema).optional(),
 });
 
 export const OrderItemSchema = z.object({
